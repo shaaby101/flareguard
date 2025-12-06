@@ -1,7 +1,4 @@
-Here is the updated **`backend/README.md`** in a clean copy-paste format.
-
 **File Path:** `backend/README.md`
-
 ````markdown
 # FlareGuard Backend 🛡️
 
