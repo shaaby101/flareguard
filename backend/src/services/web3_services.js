@@ -2,89 +2,91 @@ const { ethers } = require("ethers");
 require('dotenv').config();
 
 // --- CONFIGURATION ---
-const COSTON2_RPC = "https://coston2-api.flare.network/ext/C/rpc";
-// The official Flare Contract Registry
-const FLARE_CONTRACT_REGISTRY_ADDR = "0xaD67FE66660Fb8dFE9d6b1b4240d8650e30F6019"; 
+const COSTON2_RPC = process.env.FLARE_RPC_URL || "https://coston2-api.flare.network/ext/C/rpc";
 
-// BTC/USD Feed ID (FTSOv2)
+// 1. OFFICIAL FTSOv2 ADDRESS (Coston2 Testnet)
+// We hardcode this to avoid Registry lookup errors.
+const FTSO_V2_ADDRESS = "0x3d893C53D9e8056135C26C8c638B76C8b60Df726";
+
+// 2. Feed ID for BTC/USD
 const BTC_USD_FEED_ID = "0x014254432f55534400000000000000000000000000"; 
 
-// --- ABIs ---
-const REGISTRY_ABI = ["function getContractAddressByName(string name) public view returns (address)"];
+// --- ABI ---
+// Defined as 'view' to force a read-only call (no transaction gas)
 const FTSO_V2_ABI = [
-    "function getFeedsById(bytes21[] calldata _feedIds) external payable returns (uint256[] memory values, int8[] memory decimals, uint64 timestamp)"
-];
-const SMART_ACCOUNT_ABI = [
-    "function updateRisk(uint256 marketRisk, bool hasPump) public",
-    "function triggered() view returns (bool)",
-    "function status() view returns (uint8)"
+    "function getFeedsById(bytes21[] calldata _feedIds) external view returns (uint256[] memory values, int8[] memory decimals, uint64 timestamp)"
 ];
 
-// --- SETUP PROVIDER & SIGNER ---
+const SMART_ACCOUNT_ABI = [
+    "function updateRisk(uint256 marketRisk, bool hasPump) external",
+    "function triggered() view returns (bool)"
+];
+
+// --- SETUP ---
 const provider = new ethers.JsonRpcProvider(COSTON2_RPC);
-// Fallback to read-only if no private key
+
 const signer = process.env.OPERATOR_PRIVATE_KEY 
     ? new ethers.Wallet(process.env.OPERATOR_PRIVATE_KEY, provider) 
     : null;
 
 /**
- * 1. GET PRICE FROM FTSOv2
- * Fetches the real on-chain price of BTC.
+ * 1. GET PRICE FROM FTSOv2 (Real-Time)
  */
 async function getFTSOPrice() {
     try {
-        // A. Find FTSOv2 Address from Registry
-        const registry = new ethers.Contract(FLARE_CONTRACT_REGISTRY_ADDR, REGISTRY_ABI, provider);
-        const ftsoV2Address = await registry.getContractAddressByName("FtsoV2");
+        // Use the hardcoded address directly
+        const ftsoV2 = new ethers.Contract(FTSO_V2_ADDRESS, FTSO_V2_ABI, provider);
         
-        // B. Call FTSOv2
-        const ftsoV2 = new ethers.Contract(ftsoV2Address, FTSO_V2_ABI, provider);
+        // Fetch data
         const result = await ftsoV2.getFeedsById([BTC_USD_FEED_ID]);
 
-        // C. Format Data
-        const rawPrice = result.values[0]; // BigInt
-        const decimals = result.decimals[0]; // Number
+        // Safely access result by index (safer than by name)
+        // result[0] = values array
+        // result[1] = decimals array
+        const rawPrice = result[0][0]; 
+        const decimals = result[1][0];
         
+        // Convert to readable number
         const priceFormatted = ethers.formatUnits(rawPrice, decimals);
         
+        // Return valid object
         return {
             price: parseFloat(priceFormatted),
-            timestamp: Number(result.timestamp)
+            timestamp: Number(result[2]) * 1000 
         };
+
     } catch (error) {
+        // Detailed error logging to help debug
         console.error("❌ FTSO Read Error:", error.message);
-        return { price: 0, timestamp: Date.now() }; // Fail safe
+        return { price: 0, timestamp: Date.now() }; 
     }
 }
 
 /**
  * 2. UPDATE SMART ACCOUNT
- * Called when Risk > 80.
  */
 async function triggerSmartAccount(riskScore, isPump) {
     if (!signer) {
-        console.error("❌ No Private Key found in .env. Cannot update Smart Account.");
+        console.error("❌ No Private Key found. Cannot sign transaction.");
         return;
     }
 
-    // Your Deployed Contract Address (From .env)
     const smartAccountAddr = process.env.RISK_CONTRACT_ADDRESS;
-    if (!smartAccountAddr) {
-        console.error("❌ RISK_CONTRACT_ADDRESS missing in .env");
+    if (!smartAccountAddr || smartAccountAddr.includes("00000000")) {
+        console.error("❌ Invalid RISK_CONTRACT_ADDRESS. Skipping update.");
         return;
     }
 
     try {
         const contract = new ethers.Contract(smartAccountAddr, SMART_ACCOUNT_ABI, signer);
-        
         console.log(`⚠️ TRIGGERING SMART ACCOUNT! Risk: ${riskScore}`);
-        // Note: Make sure your contract function matches this signature
-        const tx = await contract.updateRisk(riskScore, isPump);
         
-        console.log("⏳ Transaction sent:", tx.hash);
-        await tx.wait();
+        const tx = await contract.updateRisk(riskScore, isPump);
+        console.log(`⏳ Transaction sent: ${tx.hash}`);
+        await tx.wait(1);
         console.log("✅ Smart Account Updated Successfully.");
         return tx.hash;
+
     } catch (error) {
         console.error("❌ Smart Account Update Failed:", error.message);
     }

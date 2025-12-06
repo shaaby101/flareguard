@@ -1,6 +1,6 @@
 // backend/src/services/metricsService.js
-const ftsoClient = require('../flare/ftsoClient'); // Keeps mock for other coins
-const web3Service = require('../../services/web3_services'); // REAL FTSOv2 + Smart Account
+const ftsoClient = require('../flare/ftsoClient'); 
+const web3Service = require('./web3_services'); // <--- FIXED: Uses ./ to look in same folder
 const riskEngine = require('../core/riskEngine');
 const pumpDetector = require('../core/pumpDetector');
 
