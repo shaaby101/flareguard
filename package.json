@@ -1,0 +1,16 @@
+{
+  "name": "flareguard-hackathon",
+  "version": "1.0.0",
+  "description": "FlareGuard Hackathon Project",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.27.1"
+  }
+}
