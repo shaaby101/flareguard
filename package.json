@@ -1,15 +1,17 @@
 {
-  "name": "spark-template",
+  "name": "flareguard-hackathon",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "FlareGuard Hackathon Project, combining web dashboard, extension, and Flare smart contracts.",
   "scripts": {
     "dev": "vite",
     "kill": "fuser -k 5000/tcp",
     "build": "tsc -b --noCheck && vite build",
     "lint": "eslint .",
     "optimize": "vite optimize",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@github/spark": "^0.39.0",
@@ -52,6 +54,7 @@
     "cmdk": "^1.1.1",
     "d3": "^7.9.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
     "embla-carousel-react": "^8.5.2",
     "ethers": "^6.16.0",
     "framer-motion": "^12.6.2",
@@ -77,6 +80,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@tailwindcss/postcss": "^4.1.8",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
@@ -85,6 +89,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "hardhat": "^2.27.1",
     "tailwindcss": "^4.1.11",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.38.0",
