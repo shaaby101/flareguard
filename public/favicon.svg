@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#0a0e27"/>
+  
+  <!-- Shield base -->
+  <path d="M 100 20 L 160 50 L 160 110 Q 100 160 100 160 Q 100 160 40 110 L 40 50 Z" fill="#00ff88" stroke="#00ff88" stroke-width="2"/>
+  
+  <!-- Shield inner pattern -->
+  <path d="M 100 35 L 150 60 L 150 105 Q 100 145 100 145 Q 100 145 50 105 L 50 60 Z" fill="none" stroke="#0a0e27" stroke-width="2"/>
+  
+  <!-- Center gauge indicator -->
+  <circle cx="100" cy="90" r="25" fill="none" stroke="#00ff88" stroke-width="2" opacity="0.8"/>
+  <circle cx="100" cy="90" r="18" fill="none" stroke="#00ff88" stroke-width="1" opacity="0.5"/>
+  
+  <!-- Center dot -->
+  <circle cx="100" cy="90" r="6" fill="#00ff88"/>
+  
+  <!-- Risk gauge needle -->
+  <line x1="100" y1="90" x2="100" y2="60" stroke="#ff0040" stroke-width="3" stroke-linecap="round"/>
+</svg>
